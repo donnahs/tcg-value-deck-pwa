@@ -1,4 +1,5 @@
 import './styles.css';
+import { buildPriceLookupLinks, normalizeLookupQuery } from './priceLookup.js';
 
 const STORAGE_KEY = 'tcg-vault-state-v1';
 
@@ -22,6 +23,11 @@ const defaultState = {
   activeTab: 'dashboard',
   searchQuery: 'charizard',
   searchStatus: 'Ready. Search Pokémon cards or add Riftbound seeds.',
+  priceLookup: {
+    query: 'Charizard ex 054',
+    game: 'pokemon',
+    tcgplayerAffiliate: ''
+  },
   pokemonResults: [],
   deck: {
     id: crypto.randomUUID(),
@@ -46,6 +52,7 @@ function loadState() {
     return {
       ...structuredClone(defaultState),
       ...parsed,
+      priceLookup: { ...structuredClone(defaultState).priceLookup, ...(parsed.priceLookup || {}) },
       deck: { ...structuredClone(defaultState).deck, ...(parsed.deck || {}) },
       watchlist: Array.isArray(parsed.watchlist) && parsed.watchlist.length ? parsed.watchlist : seedRiftboundCards
     };
@@ -379,6 +386,51 @@ function riftboundTab() {
   `;
 }
 
+function priceTab() {
+  const lookup = state.priceLookup || structuredClone(defaultState.priceLookup);
+  const cleanQuery = normalizeLookupQuery(lookup.query);
+  const links = buildPriceLookupLinks(lookup);
+  return `
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <h2>Price lookup</h2>
+          <p>Fast external checks. No scraping. No fake prices.</p>
+        </div>
+        <span class="pill">affiliate-ready</span>
+      </div>
+      <form id="price-lookup-form" class="search-form stacked-form">
+        <label class="field">Card or product
+          <input id="price-query" value="${lookup.query}" placeholder="Charizard ex 054, Jinx Loose Cannon..." />
+        </label>
+        <label class="field">Game
+          <select id="price-game">
+            <option value="pokemon" ${lookup.game === 'pokemon' ? 'selected' : ''}>Pokémon</option>
+            <option value="riftbound" ${lookup.game === 'riftbound' ? 'selected' : ''}>Riftbound</option>
+          </select>
+        </label>
+        <label class="field">TCGplayer affiliate source / tag
+          <input id="tcgplayer-affiliate" value="${lookup.tcgplayerAffiliate || ''}" placeholder="leave blank until approved" />
+        </label>
+        <button type="submit">Update lookup links</button>
+      </form>
+      <p class="status">Lookup: ${cleanQuery || 'enter a card name'} • ${lookup.game === 'riftbound' ? 'Riftbound' : 'Pokémon'}</p>
+      <div class="source-list price-links">
+        ${links.map((link) => `
+          <a href="${link.url}" target="_blank" rel="noreferrer">
+            <strong>${link.label}</strong>
+            <span>${link.note}</span>
+          </a>
+        `).join('') || '<p class="muted">Enter a card name to generate lookup links.</p>'}
+      </div>
+    </section>
+    <section class="panel warning-panel">
+      <h2>Price rule</h2>
+      <p>Use these links to verify manually. Riftbound pricing is still immature, so TCG Vault stores manual/seed prices until a reliable API source exists.</p>
+    </section>
+  `;
+}
+
 function exportTab() {
   return `
     <section class="panel">
@@ -404,6 +456,7 @@ function render() {
     ['search', 'Search'],
     ['deck', 'Deck'],
     ['riftbound', 'Riftbound'],
+    ['price', 'Price'],
     ['export', 'Export']
   ];
   const body = {
@@ -411,6 +464,7 @@ function render() {
     search: searchTab,
     deck: deckTab,
     riftbound: riftboundTab,
+    price: priceTab,
     export: exportTab
   }[state.activeTab]();
 
@@ -434,6 +488,17 @@ function render() {
 function wireEvents() {
   document.querySelectorAll('[data-tab]').forEach((button) => button.addEventListener('click', () => setTab(button.dataset.tab)));
   document.querySelector('#search-form')?.addEventListener('submit', searchPokemon);
+  document.querySelector('#price-lookup-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    state.priceLookup = {
+      query: document.querySelector('#price-query')?.value || '',
+      game: document.querySelector('#price-game')?.value || 'pokemon',
+      tcgplayerAffiliate: document.querySelector('#tcgplayer-affiliate')?.value || ''
+    };
+    state.searchStatus = `Built lookup links for ${normalizeLookupQuery(state.priceLookup.query) || 'blank query'}.`;
+    saveState();
+    render();
+  });
   document.querySelector('#pokemon-query')?.addEventListener('input', (event) => {
     state.searchQuery = event.target.value;
     saveState();

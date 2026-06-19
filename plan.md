@@ -1,39 +1,24 @@
-# TCG Vault PWA Build Plan
+# TCG Vault Price Lookup Patch
 
-## Goal
-Build a standalone phone-first PWA for Pokémon + Riftbound deck building and card value tracking.
+## Pick
+Best idea to work on now: **TCG Vault Price Lookup**.
 
-## Scope for this build
-- Vite app scaffold.
-- Mobile-first UI.
-- Pokémon card search via PokémonTCG API.
-- Local deck builder with quantity controls and localStorage.
-- Deck value total and expensive-card callouts.
-- Riftbound value tracker using seed cards plus manual price edits.
-- Import/export deck JSON/text.
-- PWA manifest, icon, service worker.
-- Verified local build and browser smoke test.
+## Why
+- App already exists and runs on Matt's phone.
+- Price lookup is the feature that makes it useful for real card decisions.
+- Monetisation path is clear: affiliate-ready external links first, reliable APIs later.
+- Avoids rabbit holes: no scraping, no fake Riftbound pricing.
 
-## Constraints
-- Keep this standalone. No shared folders.
-- Do not claim live Riftbound pricing is solved.
-- No OCR in v1.
-- No account/cloud sync in v1.
+## Scope for this session
+1. Extract price lookup URL builders into testable pure module.
+2. Add tests for Pokémon/Riftbound/eBay/PriceCharting/TCGplayer/Magical Meta links.
+3. Add a Price Lookup tab to the PWA.
+4. Add affiliate-ready settings fields stored locally only.
+5. Build and smoke verify.
 
-## Implementation steps
-1. Create package.json/Vite files.
-2. Add public PWA assets.
-3. Implement data model and app logic in `src/main.js`.
-4. Implement styles in `src/styles.css`.
-5. Run `npm install` and `npm run build`.
-6. Serve locally and browser-smoke test.
-7. Save screenshot and final report.
-
-## Verification checks
-- `npm run build` succeeds.
-- `node --check src/main.js` succeeds.
-- Local page loads.
-- Main tab buttons render.
-- Pokémon search UI exists.
-- Riftbound seeded cards render.
-- Deck localStorage path works.
+## Guardrails
+- No fake prices.
+- No scraping.
+- No committing fake affiliate IDs.
+- External lookup buttons are acceptable MVP.
+- Keep mobile-first.
