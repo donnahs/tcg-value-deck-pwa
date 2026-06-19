@@ -1,4 +1,5 @@
 import './styles.css';
+import { createManualCard } from './manualCard.js';
 import { buildPriceLookupLinks, normalizeLookupQuery } from './priceLookup.js';
 
 const STORAGE_KEY = 'tcg-vault-state-v1';
@@ -172,6 +173,23 @@ function updatePrice(collection, id, value) {
   card.source = card.source || 'manual';
   saveState();
   render();
+}
+
+function addManualCard(event) {
+  event?.preventDefault();
+  const form = document.querySelector('#manual-card-form');
+  if (!form) return;
+  try {
+    const card = createManualCard(Object.fromEntries(new FormData(form).entries()));
+    state.watchlist.unshift(card);
+    state.searchStatus = `Added manual card: ${card.name}.`;
+    saveState();
+    render();
+  } catch (error) {
+    state.searchStatus = `Manual entry failed: ${error.message}`;
+    saveState();
+    render();
+  }
 }
 
 async function searchPokemon(event) {
@@ -372,6 +390,31 @@ function riftboundTab() {
       </div>
     </section>
     <section class="panel">
+      <h2>Manual card entry</h2>
+      <p class="muted">Add Riftbound pulls or any Pokémon card when live search misses the exact version.</p>
+      <form id="manual-card-form" class="manual-grid">
+        <input name="name" placeholder="Card name" required />
+        <input name="set" placeholder="Set" />
+        <input name="number" placeholder="Number" />
+        <input name="rarity" placeholder="Rarity" />
+        <select name="game">
+          <option value="riftbound" selected>Riftbound</option>
+          <option value="pokemon">Pokémon</option>
+        </select>
+        <input name="quantity" type="number" min="1" step="1" value="1" placeholder="Qty" />
+        <input name="price" type="number" min="0" step="0.01" placeholder="Price" />
+        <select name="currency">
+          <option value="USD" selected>USD</option>
+          <option value="AUD">AUD</option>
+          <option value="EUR">EUR</option>
+        </select>
+        <input name="sourceUrl" placeholder="Source URL optional" />
+        <input name="notes" placeholder="Notes optional" />
+        <button type="submit">Add to watchlist</button>
+      </form>
+      <p class="status">${state.searchStatus}</p>
+    </section>
+    <section class="panel">
       <div class="section-head">
         <div>
           <h2>Watchlist</h2>
@@ -488,6 +531,7 @@ function render() {
 function wireEvents() {
   document.querySelectorAll('[data-tab]').forEach((button) => button.addEventListener('click', () => setTab(button.dataset.tab)));
   document.querySelector('#search-form')?.addEventListener('submit', searchPokemon);
+  document.querySelector('#manual-card-form')?.addEventListener('submit', addManualCard);
   document.querySelector('#price-lookup-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
     state.priceLookup = {

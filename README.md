@@ -13,6 +13,9 @@ Phone-first Pokémon + Riftbound deck builder and card value tracker.
 - High-value callouts.
 - Import/export JSON.
 - Copy deck text.
+- Price Lookup tab with Pokémon, TCGplayer, eBay, PriceCharting, Riftbound.gg and Magical Meta external checks.
+- Local TCGplayer affiliate-source field, blank by default.
+- Manual card entry for Riftbound pulls or exact Pokémon variants missed by search.
 - LocalStorage persistence.
 - PWA manifest, icons, and service worker.
 
@@ -50,7 +53,8 @@ node scripts/smoke.mjs
 - No OCR/card scanner yet.
 - No cloud sync/accounts yet.
 - Price values are estimates. Verify expensive cards before selling.
+- Affiliate fields only prepare links; you still need a real approved affiliate account before using any public affiliate ID.
 
 ## Best next feature
 
-Add a "manual card entry" form so Matt can quickly enter Riftbound pulls that are not in the seed list.
+Add camera/OCR-assisted card entry, but only after the manual entry + price lookup workflow feels useful on the phone.
