@@ -4,3 +4,24 @@ dist/
 .env.*
 .DS_Store
 *.log
+# generated / dependencies
+build/
+.next/
+coverage/
+.cache/
+.pytest_cache/
+__pycache__/
+*.pyc
+.venv/
+venv/
+# secrets / local data
+!.env.example
+*.key
+*.pem
+*.p12
+*.sqlite
+*.sqlite3
+*.db
+# local packages
+dist-packages/
+packages/*.zip
